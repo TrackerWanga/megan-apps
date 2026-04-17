@@ -1,0 +1,14 @@
+{
+  "appId": "com.megan.apps",
+  "appName": "Megan Apps",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https",
+    "cleartext": true,
+    "allowNavigation": [
+      "appapi.megan.qzz.io",
+      "megan.qzz.io",
+      "*.megan.qzz.io"
+    ]
+  }
+}

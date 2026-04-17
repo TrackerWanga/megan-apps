@@ -11,9 +11,24 @@ const headers = (withAuth = false) => {
   return h;
 };
 
+// Check if running in Capacitor
+const isCapacitor = () => {
+  return typeof window !== 'undefined' && window.Capacitor?.isNativePlatform();
+};
+
+// Open URL (in-app for Capacitor, new tab for web)
+const openUrl = async (url) => {
+  if (isCapacitor()) {
+    const { Browser } = await import('@capacitor/browser');
+    await Browser.open({ url });
+  } else {
+    window.open(url, '_blank');
+  }
+};
+
 export const api = {
   // ============ APPS ============
-  
+
   uploadApp: async (formData) => {
     const response = await fetch(`${API_URL}/api/upload/kv`, {
       method: 'POST',
@@ -46,11 +61,12 @@ export const api = {
   },
 
   downloadApp: (slug) => {
-    window.open(`${API_URL}/api/download/${slug}`, '_blank');
+    const url = `${API_URL}/api/download/${slug}`;
+    openUrl(url);
   },
 
   // ============ CDN ============
-  
+
   uploadToCDN: async (file, folder = 'apps') => {
     const formData = new FormData();
     formData.append('file', file);
@@ -63,7 +79,7 @@ export const api = {
   },
 
   // ============ REVIEWS ============
-  
+
   addReview: async (meganId, review) => {
     const response = await fetch(`${API_URL}/api/review/${meganId}`, {
       method: 'POST',
@@ -79,7 +95,7 @@ export const api = {
   },
 
   // ============ LIKES ============
-  
+
   likeApp: async (meganId) => {
     const response = await fetch(`${API_URL}/api/like/${meganId}`, {
       method: 'POST',
@@ -96,7 +112,7 @@ export const api = {
   },
 
   // ============ FOLLOW ============
-  
+
   followDeveloper: async (developerId) => {
     const response = await fetch(`${API_URL}/api/me/follow`, {
       method: 'POST',
@@ -116,7 +132,7 @@ export const api = {
   },
 
   // ============ USER ============
-  
+
   getMe: async () => {
     const response = await fetch(`${API_URL}/api/me`, {
       headers: headers(true)
@@ -134,7 +150,7 @@ export const api = {
   },
 
   // ============ API KEYS ============
-  
+
   getApiKeys: async () => {
     const response = await fetch(`${API_URL}/api/me/api-keys`, {
       headers: headers(true)
@@ -160,7 +176,7 @@ export const api = {
   },
 
   // ============ DEVELOPER ============
-  
+
   getDeveloperStats: async () => {
     const response = await fetch(`${API_URL}/api/developer/stats`, {
       headers: headers(true)

@@ -67,18 +67,6 @@ jobs:
               "megan.qzz.io",
               "*.megan.qzz.io"
             ]
-          },
-          "plugins": {
-            "SplashScreen": {
-              "launchShowDuration": 2000,
-              "backgroundColor": "#0a0a0f",
-              "showSpinner": true,
-              "spinnerColor": "#6366f1"
-            },
-            "StatusBar": {
-              "style": "dark",
-              "backgroundColor": "#0a0a0f"
-            }
           }
         }
         CAPEOF
@@ -101,5 +89,5 @@ jobs:
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: megan-apps-debug
+        name: megan-apps
         path: android/app/build/outputs/apk/debug/app-debug.apk
