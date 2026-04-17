@@ -5,7 +5,6 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
-# Add permissions for the GITHUB_TOKEN
 permissions:
   contents: write
   actions: read
@@ -36,27 +35,24 @@ jobs:
         packages: 'platforms;android-34 build-tools;34.0.0 platform-tools'
     
     - name: Install dependencies
-      run: npm ci
+      run: npm ci --legacy-peer-deps
     
     - name: Build web app
       run: npm run build
-    
-    - name: Install Capacitor
-      run: |
-        npm install @capacitor/core@5 @capacitor/cli@5 @capacitor/android@5
     
     - name: Initialize Capacitor
       run: |
         npx cap init "Megan Apps" com.megan.apps --web-dir=dist
         npx cap add android
     
-    - name: Configure Gradle
+    - name: Generate App Icon
       run: |
-        echo "org.gradle.jvmargs=-Xmx2048m -XX:MaxMetaspaceSize=512m" >> android/gradle.properties
-        echo "android.useAndroidX=true" >> android/gradle.properties
-        echo "android.enableJetifier=true" >> android/gradle.properties
+        if [ -f public/icon.png ]; then
+          npm install @capacitor/assets --save-dev
+          npx capacitor-assets generate --android --icon-background "#0a0a0f"
+        fi
     
-    - name: Fix Capacitor config for production
+    - name: Configure Capacitor
       run: |
         cat > capacitor.config.json << 'CAPEOF'
         {
@@ -71,9 +67,27 @@ jobs:
               "megan.qzz.io",
               "*.megan.qzz.io"
             ]
+          },
+          "plugins": {
+            "SplashScreen": {
+              "launchShowDuration": 2000,
+              "backgroundColor": "#0a0a0f",
+              "showSpinner": true,
+              "spinnerColor": "#6366f1"
+            },
+            "StatusBar": {
+              "style": "dark",
+              "backgroundColor": "#0a0a0f"
+            }
           }
         }
         CAPEOF
+    
+    - name: Configure Gradle
+      run: |
+        echo "org.gradle.jvmargs=-Xmx2048m -XX:MaxMetaspaceSize=512m" >> android/gradle.properties
+        echo "android.useAndroidX=true" >> android/gradle.properties
+        echo "android.enableJetifier=true" >> android/gradle.properties
     
     - name: Sync Capacitor
       run: npx cap sync android
