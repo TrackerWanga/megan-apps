@@ -22,15 +22,18 @@ export const useDownload = () => {
     setDownloadStatus('Starting download...');
 
     try {
-      // Ensure MeganApps folder exists
+      // Create MeganApps folder at root of external storage
+      const folderPath = 'MeganApps';
       try {
         await Filesystem.mkdir({
-          path: 'Download/MeganApps',
+          path: folderPath,
           directory: Directory.External,
           recursive: true
         });
+        console.log('✅ MeganApps folder created at /storage/emulated/0/MeganApps');
       } catch (e) {
-        // Folder already exists, ignore
+        // Folder already exists
+        console.log('📁 MeganApps folder already exists');
       }
 
       const response = await fetch(url);
@@ -55,7 +58,7 @@ export const useDownload = () => {
         }
       }
 
-      setDownloadStatus('Saving to Downloads/MeganApps...');
+      setDownloadStatus('Saving to MeganApps folder...');
       const blob = new Blob(chunks);
       const base64Data = await new Promise((resolve) => {
         const reader = new FileReader();
@@ -63,8 +66,9 @@ export const useDownload = () => {
         reader.readAsDataURL(blob);
       });
 
+      // Save directly to MeganApps folder (not inside Downloads)
       const savedFile = await Filesystem.writeFile({
-        path: `Download/MeganApps/${fileName}`,
+        path: `${folderPath}/${fileName}`,
         data: base64Data,
         directory: Directory.External,
         recursive: true
@@ -75,18 +79,15 @@ export const useDownload = () => {
 
       // Show success with file location
       await Toast.show({
-        text: `✅ Saved to Downloads/MeganApps/${fileName}`,
+        text: `✅ Saved to MeganApps/${fileName}`,
         duration: 'long',
         position: 'bottom'
       });
 
-      // Track download (optional - call API)
+      // Track download count
       if (meganId) {
         try {
-          await fetch(`https://appapi.megan.qzz.io/api/download/${meganId}`, {
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json' }
-          });
+          await fetch(`https://appapi.megan.qzz.io/api/download/${meganId}`);
         } catch (e) {
           console.log('Download tracking skipped');
         }
@@ -99,7 +100,7 @@ export const useDownload = () => {
             await AppLauncher.open({ uri: savedFile.uri });
           } catch (error) {
             await Toast.show({ 
-              text: '📦 APK saved. Open Downloads/MeganApps to install', 
+              text: '📱 Open MeganApps folder to install', 
               duration: 'long' 
             });
           }
