@@ -28,9 +28,9 @@ function App() {
               <Route path="/app/:slug" element={<AppDetails />} />
               <Route path="/docs/terms" element={<Terms />} />
               <Route path="/docs/privacy" element={<Privacy />} />
-          <Route path="/docs/api" element={<API />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="*" element={<NotFound />} />
+              <Route path="/docs/api" element={<API />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="*" element={<NotFound />} />
             </Routes>
           </main>
           <Footer />
