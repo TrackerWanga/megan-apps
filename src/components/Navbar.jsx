@@ -52,6 +52,9 @@ const Navbar = () => {
               <FiSearch />
             </button>
 
+            <Link to="/downloads" onClick={() => setMenuOpen(false)} className="menu-item downloads">
+              <FiDownload /> My Downloads
+            </Link>
             <Link to="/upload" className="icon-btn upload-btn">
               <FiUpload />
             </Link>
@@ -135,6 +138,9 @@ const Navbar = () => {
           <div className="menu-links">
             <Link to="/" onClick={() => setMenuOpen(false)} className="menu-item home">
               <FiHome /> Home
+            </Link>
+            <Link to="/downloads" onClick={() => setMenuOpen(false)} className="menu-item downloads">
+              <FiDownload /> My Downloads
             </Link>
             <Link to="/upload" onClick={() => setMenuOpen(false)} className="menu-item upload">
               <FiUpload /> Publish App

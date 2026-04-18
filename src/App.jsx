@@ -11,6 +11,7 @@ import Terms from './pages/docs/Terms';
 import Privacy from './pages/docs/Privacy';
 import API from './pages/docs/API';
 import Settings from './pages/Settings';
+import Downloads from "/pages/Downloads";
 import NotFound from './pages/NotFound';
 import './index.css';
 
@@ -29,7 +30,8 @@ function App() {
               <Route path="/docs/terms" element={<Terms />} />
               <Route path="/docs/privacy" element={<Privacy />} />
               <Route path="/docs/api" element={<API />} />
-              <Route path="/settings" element={<Settings />} />
+              <Route path="/downloads" element={<Downloads />} />
+          <Route path="/settings" element={<Settings />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>
