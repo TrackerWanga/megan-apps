@@ -1,0 +1,22 @@
+--- a/src/services/firebase.js
++++ b/src/services/firebase.js
+@@ -48,12 +48,15 @@ export const signInWithGoogle = async () => {
+   const user = result.user;
+ 
+   // Check if user exists in Firestore
+   const userDoc = await getDoc(doc(db, 'users', user.uid));
+   if (!userDoc.exists()) {
++    // Ensure email exists - Google Sign-In should always have email
++    const userEmail = user.email || user.providerData[0]?.email || '';
++    
+     await setDoc(doc(db, 'users', user.uid), {
+       uid: user.uid,
+-      email: user.email,
++      email: userEmail,
+       displayName: user.displayName,
+       photoURL: user.photoURL,
+       userType: 'regular',
+       createdAt: new Date().toISOString(),
+       apps: []
+     });
+   }

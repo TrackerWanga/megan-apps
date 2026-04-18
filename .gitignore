@@ -33,3 +33,5 @@ Thumbs.db
 # Capacitor
 android/
 ios/
+resources/android/
+resources/ios/
