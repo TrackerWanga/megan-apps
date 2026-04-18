@@ -1,12 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FiMail, FiLock, FiUser, FiEye, FiEyeOff, FiAlertCircle, FiCheckCircle, FiArrowLeft } from 'react-icons/fi';
 import { FcGoogle } from 'react-icons/fc';
 import { useAuth } from '../context/AuthContext';
 import { Capacitor } from '@capacitor/core';
-import { App } from '@capacitor/app';
-import { signInWithGoogleNative, initializeGoogleAuth, refreshGoogleAuth } from '../services/nativeAuth';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -27,23 +25,8 @@ const Login = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [touched, setTouched] = useState({});
 
-  // Initialize Google Auth and handle app resume
-  useEffect(() => {
-    if (Capacitor.isNativePlatform()) {
-      initializeGoogleAuth();
-      
-      // Handle app resume for Google Sign-In
-      const listener = App.addListener('appStateChange', async ({ isActive }) => {
-        if (isActive) {
-          await refreshGoogleAuth();
-        }
-      });
-      
-      return () => {
-        listener.remove();
-      };
-    }
-  }, []);
+  // Check if running in native app
+  const isNative = Capacitor.isNativePlatform();
 
   const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const validatePassword = (password) => password.length >= 6;
@@ -118,12 +101,7 @@ const Login = () => {
     setLoading(true);
 
     try {
-      if (Capacitor.isNativePlatform()) {
-        await signInWithGoogleNative();
-      } else {
-        await signInWithGoogle();
-      }
-      
+      await signInWithGoogle();
       setSuccess('Login successful! Redirecting...');
       setTimeout(() => navigate(from, { replace: true }), 1000);
     } catch (err) {
@@ -236,11 +214,15 @@ const Login = () => {
             </button>
           </form>
 
-          <div className="divider"><span>or continue with</span></div>
-
-          <button className="google-btn" onClick={handleGoogleSignIn} disabled={loading}>
-            <FcGoogle size={20} /><span>Google</span>
-          </button>
+          {/* Only show Google Sign-In on web, not in native app */}
+          {!isNative && (
+            <>
+              <div className="divider"><span>or continue with</span></div>
+              <button className="google-btn" onClick={handleGoogleSignIn} disabled={loading}>
+                <FcGoogle size={20} /><span>Google</span>
+              </button>
+            </>
+          )}
 
           <p className="switch-mode">
             {isLogin ? "Don't have an account?" : "Already have an account?"}
