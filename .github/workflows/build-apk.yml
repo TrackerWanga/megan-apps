@@ -45,16 +45,6 @@ jobs:
         npx cap init "Megan Apps" com.megan.apps --web-dir=dist
         npx cap add android
     
-    - name: Generate App Icon
-      run: |
-        if [ -f public/icon.png ]; then
-          echo "🎨 Generating app icon from public/icon.png..."
-          npm install @capacitor/assets --save-dev
-          npx capacitor-assets generate --android --icon-background "#0a0a0f"
-        else
-          echo "⚠️ No icon found at public/icon.png - using default"
-        fi
-    
     - name: Configure Capacitor
       run: |
         cat > capacitor.config.json << 'CAPEOF'
@@ -70,6 +60,26 @@ jobs:
               "megan.qzz.io",
               "*.megan.qzz.io"
             ]
+          },
+          "plugins": {
+            "SplashScreen": {
+              "launchShowDuration": 2000,
+              "backgroundColor": "#0a0a0f",
+              "showSpinner": true,
+              "spinnerColor": "#6366f1"
+            },
+            "StatusBar": {
+              "style": "dark",
+              "backgroundColor": "#0a0a0f"
+            },
+            "Browser": {
+              "presentationStyle": "fullscreen"
+            },
+            "GoogleAuth": {
+              "scopes": ["profile", "email"],
+              "serverClientId": "599593422056-f4lpouihf09j8r33ibd6b6n8u9oqo81f.apps.googleusercontent.com",
+              "forceCodeForRefreshToken": true
+            }
           }
         }
         CAPEOF
