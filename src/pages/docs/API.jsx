@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiArrowLeft, FiCopy, FiCheck, FiKey, FiUpload, FiCode, FiServer, FiDatabase, FiPlus, FiTrash2, FiLoader, FiEye, FiEyeOff, FiAward, FiUserPlus } from 'react-icons/fi';
+import { FiArrowLeft, FiCopy, FiCheck, FiKey, FiUpload, FiCode, FiServer, FiDatabase, FiPlus, FiTrash2, FiLoader, FiEye, FiEyeOff } from 'react-icons/fi';
 import { FaWhatsapp, FaGithub, FaTelegram } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -14,53 +14,15 @@ const API = () => {
   const [newKey, setNewKey] = useState(null);
   const [showKey, setShowKey] = useState(false);
   const [activeTab, setActiveTab] = useState('curl');
-  const [isDeveloper, setIsDeveloper] = useState(true);
-  const [checkingDeveloper, setCheckingDeveloper] = useState(true);
-  const [upgrading, setUpgrading] = useState(false);
 
   const baseUrl = 'https://appapi.megan.qzz.io';
+  const devApiUrl = 'https://devapi.megan.qzz.io';
 
   useEffect(() => {
     if (user) {
       loadApiKeys();
-    } else {
-      setCheckingDeveloper(false);
     }
   }, [user]);
-
-  const checkDeveloperStatus = async () => {
-    try {
-      const result = await api.getMe();
-      if (result.success) {
-        setIsDeveloper(result.data.user?.userType === 'developer');
-        if (true) {
-          loadApiKeys();
-        }
-      }
-    } catch (error) {
-      console.error('Failed to check developer status:', error);
-    } finally {
-      setCheckingDeveloper(false);
-    }
-  };
-
-  const upgradeToDeveloper = async () => {
-    setUpgrading(true);
-    try {
-      const result = await api.upgradeDeveloper({});
-      if (result.success) {
-        setIsDeveloper(true);
-        loadApiKeys();
-      } else {
-        alert('Failed to upgrade. Please try again.');
-      }
-    } catch (error) {
-      console.error('Failed to upgrade:', error);
-      alert('Failed to upgrade. Please try again.');
-    } finally {
-      setUpgrading(false);
-    }
-  };
 
   const loadApiKeys = async () => {
     setLoadingKeys(true);
@@ -108,10 +70,17 @@ const API = () => {
 
   const languageExamples = {
     curl: {
-      publish: `curl -X POST ${baseUrl}/api/publish \\
+      publish: `curl -X POST ${devApiUrl}/v1/publish \\
   -H "X-API-Key: megan_live_xxx" \\
   -F 'metadata={"name":"My App","type":"website","developer":"John","description":"Awesome app","category":"tools","website":"https://example.com"}' \\
   -F 'icon=@icon.png'`,
+      publishAPK: `curl -X POST ${devApiUrl}/v1/publish \\
+  -H "X-API-Key: megan_live_xxx" \\
+  -F 'metadata={"name":"My APK","type":"apk","developer":"John","description":"Awesome app","category":"tools"}' \\
+  -F 'file=@app.apk' \\
+  -F 'icon=@icon.png'`,
+      listApps: `curl ${devApiUrl}/v1/apps \\
+  -H "X-API-Key: megan_live_xxx"`,
       getApps: `curl ${baseUrl}/api/apps`,
       getApp: `curl ${baseUrl}/api/app/megan-movie-api-r8wlkev1e`
     },
@@ -127,7 +96,7 @@ formData.append('metadata', JSON.stringify({
 }));
 formData.append('icon', iconFile);
 
-const response = await fetch('${baseUrl}/api/publish', {
+const response = await fetch('${devApiUrl}/v1/publish', {
   method: 'POST',
   headers: { 'X-API-Key': 'megan_live_xxx' },
   body: formData
@@ -158,7 +127,7 @@ files = {
 }
 
 headers = {'X-API-Key': 'megan_live_xxx'}
-response = requests.post('${baseUrl}/api/publish', files=files, headers=headers)
+response = requests.post('${devApiUrl}/v1/publish', files=files, headers=headers)
 print(response.json())`,
       getApps: `import requests
 response = requests.get('${baseUrl}/api/apps')
@@ -184,7 +153,7 @@ $postfields = [
 ];
 
 $ch = curl_init();
-curl_setopt($ch, CURLOPT_URL, '${baseUrl}/api/publish');
+curl_setopt($ch, CURLOPT_URL, '${devApiUrl}/v1/publish');
 curl_setopt($ch, CURLOPT_POST, true);
 curl_setopt($ch, CURLOPT_POSTFIELDS, $postfields);
 curl_setopt($ch, CURLOPT_HTTPHEADER, ['X-API-Key: megan_live_xxx']);
@@ -221,15 +190,31 @@ print_r($data['data']['app']);`
           </div>
         </div>
 
+        {/* Base URLs */}
         <div className="section">
-          <h2><FiServer /> Base URL</h2>
-          <div className="code-block">
-            <code>https://appapi.megan.qzz.io</code>
-            <button onClick={() => copyToClipboard('https://appapi.megan.qzz.io', 'base')}>
-              {copied === 'base' ? <FiCheck /> : <FiCopy />}
-            </button>
+          <h2><FiServer /> Base URLs</h2>
+          <div className="url-grid">
+            <div className="url-card">
+              <div className="url-label">Platform API (Public)</div>
+              <div className="code-block">
+                <code>{baseUrl}</code>
+                <button onClick={() => copyToClipboard(baseUrl, 'base')}>
+                  {copied === 'base' ? <FiCheck /> : <FiCopy />}
+                </button>
+              </div>
+              <p>Used by the Megan Apps frontend. Some endpoints require Firebase authentication.</p>
+            </div>
+            <div className="url-card highlight">
+              <div className="url-label">Developer API (API Key)</div>
+              <div className="code-block">
+                <code>{devApiUrl}</code>
+                <button onClick={() => copyToClipboard(devApiUrl, 'devbase')}>
+                  {copied === 'devbase' ? <FiCheck /> : <FiCopy />}
+                </button>
+              </div>
+              <p>For programmatic app publishing. Requires API Key authentication.</p>
+            </div>
           </div>
-          <p>All API requests should be made to this base URL. HTTPS is required.</p>
         </div>
 
         {/* API Keys Section */}
@@ -240,36 +225,11 @@ print_r($data['data']['app']);`
               <p>Sign in to view and manage your API keys.</p>
               <Link to="/login" className="signin-btn">Sign In</Link>
             </div>
-          ) : checkingDeveloper ? (
-            <div className="loading-state">
-              <FiLoader className="spinning" /> Checking account...
-            </div>
-          ) : !isDeveloper ? (
-            <div className="upgrade-prompt">
-              <div className="upgrade-icon">
-                <FiAward />
-              </div>
-              <h3>Become a Developer</h3>
-              <p>Upgrade to a developer account to generate API keys and publish apps programmatically.</p>
-              <button 
-                className="upgrade-btn"
-                onClick={upgradeToDeveloper}
-                disabled={upgrading}
-              >
-                {upgrading ? <FiLoader className="spinning" /> : <FiUserPlus />}
-                {upgrading ? 'Upgrading...' : 'Upgrade to Developer'}
-              </button>
-              <p className="upgrade-note">Free forever. No credit card required.</p>
-            </div>
           ) : (
             <>
               <div className="api-keys-header">
-                <p>Use these keys to authenticate your API requests.</p>
-                <button 
-                  className="generate-btn"
-                  onClick={generateApiKey}
-                  disabled={generating}
-                >
+                <p>Use these keys with the Developer API at <code>{devApiUrl}</code></p>
+                <button className="generate-btn" onClick={generateApiKey} disabled={generating}>
                   {generating ? <FiLoader className="spinning" /> : <FiPlus />}
                   Generate New Key
                 </button>
@@ -292,9 +252,7 @@ print_r($data['data']['app']);`
 
               <div className="api-keys-list">
                 {loadingKeys ? (
-                  <div className="loading-keys">
-                    <FiLoader className="spinning" /> Loading keys...
-                  </div>
+                  <div className="loading-keys"><FiLoader className="spinning" /> Loading keys...</div>
                 ) : apiKeys.length === 0 ? (
                   <p className="no-keys">No API keys yet. Generate one to get started.</p>
                 ) : (
@@ -304,10 +262,7 @@ print_r($data['data']['app']);`
                         <code>{key.key}</code>
                         <span className="key-date">Created: {new Date(key.createdAt).toLocaleDateString()}</span>
                       </div>
-                      <button 
-                        className="revoke-btn"
-                        onClick={() => revokeApiKey(key.id)}
-                      >
+                      <button className="revoke-btn" onClick={() => revokeApiKey(key.id)}>
                         <FiTrash2 /> Revoke
                       </button>
                     </div>
@@ -318,6 +273,20 @@ print_r($data['data']['app']);`
           )}
         </div>
 
+        {/* Developer API Endpoints */}
+        <div className="section">
+          <h2><FiUpload /> Developer API Endpoints</h2>
+          <p className="section-desc">Use these endpoints with your API key to publish apps programmatically.</p>
+          <div className="endpoint-grid">
+            <EndpointCard method="POST" path="/v1/publish" desc="Publish an app (APK, Website, WAP, Bot)" auth="API Key" />
+            <EndpointCard method="GET" path="/v1/apps" desc="List all your published apps" auth="API Key" />
+            <EndpointCard method="GET" path="/v1/apps/:meganId" desc="Get single app details" auth="API Key" />
+            <EndpointCard method="DELETE" path="/v1/apps/:meganId" desc="Delete your app" auth="API Key" />
+            <EndpointCard method="GET" path="/v1/health" desc="Health check" auth="None" />
+          </div>
+        </div>
+
+        {/* Code Examples */}
         <div className="section">
           <h2><FiCode /> Code Examples</h2>
           <div className="tabs">
@@ -336,27 +305,32 @@ print_r($data['data']['app']);`
               </button>
             </div>
 
-            <h3>List All Apps</h3>
-            <div className="code-block">
-              <code>{languageExamples[activeTab].getApps}</code>
-              <button onClick={() => copyToClipboard(languageExamples[activeTab].getApps, `getApps-${activeTab}`)}>
-                {copied === `getApps-${activeTab}` ? <FiCheck /> : <FiCopy />}
-              </button>
-            </div>
+            {activeTab === 'curl' && (
+              <>
+                <h3>Publish an APK</h3>
+                <div className="code-block">
+                  <code>{languageExamples.curl.publishAPK}</code>
+                  <button onClick={() => copyToClipboard(languageExamples.curl.publishAPK, 'publish-apk')}>
+                    {copied === 'publish-apk' ? <FiCheck /> : <FiCopy />}
+                  </button>
+                </div>
+              </>
+            )}
 
-            <h3>Get Single App</h3>
+            <h3>List Your Apps</h3>
             <div className="code-block">
-              <code>{languageExamples[activeTab].getApp}</code>
-              <button onClick={() => copyToClipboard(languageExamples[activeTab].getApp, `getApp-${activeTab}`)}>
-                {copied === `getApp-${activeTab}` ? <FiCheck /> : <FiCopy />}
+              <code>{languageExamples[activeTab].listApps || languageExamples.curl.listApps}</code>
+              <button onClick={() => copyToClipboard(languageExamples[activeTab].listApps || languageExamples.curl.listApps, 'list-apps')}>
+                {copied === 'list-apps' ? <FiCheck /> : <FiCopy />}
               </button>
             </div>
           </div>
         </div>
 
+        {/* Public APIs */}
         <div className="section">
-          <h2><FiDatabase /> Public APIs</h2>
-          <p className="section-desc">No authentication required. Anyone can access these endpoints.</p>
+          <h2><FiDatabase /> Public Platform APIs</h2>
+          <p className="section-desc">No authentication required. Used by the Megan Apps frontend.</p>
           <div className="endpoint-grid">
             <EndpointCard method="GET" path="/api/apps" desc="List all published apps" />
             <EndpointCard method="GET" path="/api/apps?category=entertainment" desc="Filter apps by category" />
@@ -367,43 +341,28 @@ print_r($data['data']['app']);`
           </div>
         </div>
 
-        <div className="section">
-          <h2><FiCode /> Developer APIs</h2>
-          <p className="section-desc">Requires authentication (Firebase token).</p>
-          <div className="endpoint-grid">
-            <EndpointCard method="GET" path="/api/developer/apps" desc="List all your apps" auth="Bearer Token" />
-            <EndpointCard method="GET" path="/api/developer/stats" desc="Get developer statistics" auth="Bearer Token" />
-            <EndpointCard method="PUT" path="/api/developer/apps/:meganId" desc="Update app metadata" auth="Bearer Token" />
-            <EndpointCard method="DELETE" path="/api/developer/apps/:meganId" desc="Delete your app" auth="Bearer Token" />
-          </div>
-        </div>
-
+        {/* Rate Limits */}
         <div className="section">
           <h2>Rate Limits</h2>
           <div className="rate-limit-grid">
-            <div className="rate-card"><h3>Public APIs</h3><p className="limit">100 req/hour</p><p>Per IP address</p></div>
-            <div className="rate-card"><h3>API Key</h3><p className="limit">100 req/day</p><p>Per API key</p></div>
+            <div className="rate-card"><h3>Platform APIs</h3><p className="limit">100 req/hour</p><p>Per IP address</p></div>
+            <div className="rate-card"><h3>Developer API</h3><p className="limit">100 req/day</p><p>Per API key</p></div>
             <div className="rate-card"><h3>Authenticated</h3><p className="limit">500 req/hour</p><p>Per user</p></div>
           </div>
         </div>
 
+        {/* Support */}
         <div className="section">
           <h2>Support</h2>
           <div className="support-grid">
             <a href="https://wa.me/254758476795" target="_blank" rel="noopener noreferrer" className="support-card whatsapp">
-              <FaWhatsapp /> WhatsApp<br />
-              <span>+254 758 476 795</span>
-              <small>Quick support</small>
+              <FaWhatsapp /> WhatsApp<br /><span>+254 758 476 795</span><small>Quick support</small>
             </a>
             <a href="https://github.com/TrackerWanga" target="_blank" rel="noopener noreferrer" className="support-card github">
-              <FaGithub /> GitHub<br />
-              <span>TrackerWanga</span>
-              <small>Open source</small>
+              <FaGithub /> GitHub<br /><span>TrackerWanga</span><small>Open source</small>
             </a>
-            <a href="https://t.me/megan-ceo" target="_blank" rel="noopener noreferrer" className="support-card telegram">
-              <FaTelegram /> Telegram<br />
-              <span>@megan_ceo</span>
-              <small>Direct message</small>
+            <a href="https://t.me/megan_ceo" target="_blank" rel="noopener noreferrer" className="support-card telegram">
+              <FaTelegram /> Telegram<br /><span>@megan_ceo</span><small>Direct message</small>
             </a>
           </div>
         </div>
@@ -422,6 +381,15 @@ print_r($data['data']['app']);`
         .section.highlight { background: rgba(99,102,241,0.05); border: 1px solid rgba(99,102,241,0.15); border-radius: 20px; padding: 28px; }
         h2 { font-size: 24px; font-weight: 700; margin-bottom: 16px; color: white; display: flex; align-items: center; gap: 10px; }
         .section-desc { color: rgba(255,255,255,0.6); margin-bottom: 24px; }
+        
+        .url-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .url-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 14px; padding: 20px; }
+        .url-card.highlight { background: rgba(99,102,241,0.05); border-color: rgba(99,102,241,0.2); }
+        .url-label { font-weight: 600; margin-bottom: 12px; color: rgba(255,255,255,0.8); }
+        .url-card p { color: rgba(255,255,255,0.5); font-size: 13px; margin-top: 12px; }
+        .url-card.highlight p { color: #a78bfa; }
+        .url-card code { font-size: 13px; }
+        
         .code-block { background: #0d0d14; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 16px; display: flex; align-items: flex-start; justify-content: space-between; margin: 12px 0; }
         .code-block code { font-family: 'Monaco', 'Menlo', monospace; font-size: 13px; color: #a78bfa; white-space: pre-wrap; word-break: break-all; }
         .code-block button { background: none; border: none; color: rgba(255,255,255,0.5); cursor: pointer; padding: 4px 8px; border-radius: 6px; }
@@ -431,19 +399,9 @@ print_r($data['data']['app']);`
         .signin-prompt p { color: rgba(255,255,255,0.6); margin-bottom: 20px; }
         .signin-btn { display: inline-block; padding: 12px 30px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border-radius: 30px; color: white; text-decoration: none; font-weight: 600; }
 
-        .upgrade-prompt { text-align: center; padding: 40px 20px; background: rgba(99,102,241,0.05); border-radius: 20px; }
-        .upgrade-icon { width: 64px; height: 64px; margin: 0 auto 20px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 28px; color: white; }
-        .upgrade-prompt h3 { font-size: 22px; margin-bottom: 12px; color: white; }
-        .upgrade-prompt p { color: rgba(255,255,255,0.7); margin-bottom: 24px; max-width: 400px; margin-left: auto; margin-right: auto; }
-        .upgrade-btn { display: inline-flex; align-items: center; gap: 8px; padding: 14px 30px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border: none; border-radius: 30px; color: white; font-weight: 600; font-size: 16px; cursor: pointer; margin-bottom: 12px; }
-        .upgrade-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-        .upgrade-note { font-size: 13px; color: rgba(255,255,255,0.4); }
-
-        .loading-state { text-align: center; padding: 40px; color: rgba(255,255,255,0.5); }
-        .loading-state svg { margin-right: 8px; }
-
         .api-keys-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
         .api-keys-header p { color: rgba(255,255,255,0.7); }
+        .api-keys-header code { background: rgba(99,102,241,0.2); padding: 2px 8px; border-radius: 6px; color: #a78bfa; }
         .generate-btn { display: flex; align-items: center; gap: 8px; padding: 10px 20px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border: none; border-radius: 30px; color: white; font-weight: 500; cursor: pointer; }
         .generate-btn:disabled { opacity: 0.6; cursor: not-allowed; }
         .new-key-box { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); border-radius: 14px; padding: 20px; margin-bottom: 24px; }
@@ -482,6 +440,7 @@ print_r($data['data']['app']);`
 
         @media (max-width: 768px) {
           h1 { font-size: 36px; }
+          .url-grid { grid-template-columns: 1fr; }
           .support-grid, .rate-limit-grid { grid-template-columns: 1fr; }
         }
       `}</style>
