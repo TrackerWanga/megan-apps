@@ -1,13 +1,10 @@
-// Native Google Sign-In for Capacitor
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { 
   getAuth, 
   signInWithCredential, 
-  GoogleAuthProvider,
-  signOut as firebaseSignOut
+  GoogleAuthProvider 
 } from 'firebase/auth';
 
-// Initialize Google Auth
 export const initializeGoogleAuth = async () => {
   try {
     await GoogleAuth.initialize({
@@ -20,30 +17,36 @@ export const initializeGoogleAuth = async () => {
   }
 };
 
-// Sign in with Google natively
 export const signInWithGoogleNative = async () => {
   try {
-    // 1. Sign in with Google natively
-    const googleUser = await GoogleAuth.signIn();
+    console.log('Starting native Google Sign-In...');
     
-    // 2. Get the ID token
+    const googleUser = await GoogleAuth.signIn();
+    console.log('Google Sign-In successful:', googleUser);
+    
     const idToken = googleUser.authentication.idToken;
     
-    // 3. Create Firebase credential
     const credential = GoogleAuthProvider.credential(idToken);
-    
-    // 4. Sign in to Firebase
     const auth = getAuth();
     const result = await signInWithCredential(auth, credential);
     
+    console.log('Firebase sign-in successful:', result.user.email);
     return result.user;
   } catch (error) {
-    console.error('Native Google Sign-In failed:', error);
+    console.error('Native Google Sign-In error details:', JSON.stringify(error));
+    
+    if (error.message?.includes('popup closed')) {
+      throw new Error('Sign-in was cancelled');
+    } else if (error.message?.includes('network')) {
+      throw new Error('Network error. Please check your connection.');
+    } else if (error.message?.includes('DEVELOPER_ERROR')) {
+      throw new Error('App configuration error. Please contact support.');
+    }
+    
     throw error;
   }
 };
 
-// Sign out from Google
 export const signOutGoogle = async () => {
   try {
     await GoogleAuth.signOut();
@@ -52,7 +55,6 @@ export const signOutGoogle = async () => {
   }
 };
 
-// Refresh Google Auth (call on app resume)
 export const refreshGoogleAuth = async () => {
   try {
     await GoogleAuth.refresh();
