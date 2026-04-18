@@ -48,8 +48,11 @@ jobs:
     - name: Generate App Icon
       run: |
         if [ -f public/icon.png ]; then
+          echo "🎨 Generating app icon from public/icon.png..."
           npm install @capacitor/assets --save-dev
           npx capacitor-assets generate --android --icon-background "#0a0a0f"
+        else
+          echo "⚠️ No icon found at public/icon.png - using default"
         fi
     
     - name: Configure Capacitor
