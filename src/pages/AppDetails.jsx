@@ -73,7 +73,7 @@ const AppDetails = () => {
     }
 
     const fileName = `${app.slug}.${app.type === 'apk' ? 'apk' : 'zip'}`;
-    await downloadAndInstall(downloadUrl, fileName, app.name);
+    await downloadAndInstall(downloadUrl, fileName, app.name, app.meganId);
   };
 
   const handleShare = () => {

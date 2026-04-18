@@ -3,13 +3,25 @@ import { Capacitor } from '@capacitor/core';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { AppLauncher } from '@capacitor/app-launcher';
 import { Toast } from '@capacitor/toast';
+import { LocalNotifications } from '@capacitor/local-notifications';
 
 export const useDownload = () => {
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadStatus, setDownloadStatus] = useState('');
 
-  const downloadAndInstall = async (url, fileName, appName) => {
+  // Request notification permission on first use
+  const requestNotificationPermission = async () => {
+    try {
+      const result = await LocalNotifications.requestPermissions();
+      return result.display === 'granted';
+    } catch (error) {
+      console.error('Notification permission error:', error);
+      return false;
+    }
+  };
+
+  const downloadAndInstall = async (url, fileName, appName, meganId) => {
     const isNative = Capacitor.isNativePlatform();
     
     // Web fallback
@@ -23,6 +35,9 @@ export const useDownload = () => {
     setDownloadStatus('Starting download...');
 
     try {
+      // Request notification permission
+      await requestNotificationPermission();
+
       // Step 1: Download file with progress
       const response = await fetch(url);
       const contentLength = response.headers.get('content-length');
@@ -47,6 +62,7 @@ export const useDownload = () => {
       }
 
       // Step 2: Combine chunks
+      setDownloadStatus('Processing file...');
       const blob = new Blob(chunks);
       const base64Data = await new Promise((resolve) => {
         const reader = new FileReader();
@@ -58,9 +74,9 @@ export const useDownload = () => {
       });
 
       // Step 3: Save to filesystem
-      setDownloadStatus('Saving file...');
+      setDownloadStatus('Saving to Downloads...');
       const savedFile = await Filesystem.writeFile({
-        path: `downloads/${fileName}`,
+        path: `Download/MeganApps/${fileName}`,
         data: base64Data,
         directory: Directory.External,
         recursive: true
@@ -69,14 +85,45 @@ export const useDownload = () => {
       setDownloadProgress(100);
       setDownloadStatus('Download complete!');
 
-      // Step 4: Show notification
+      // Step 4: Show Toast
       await Toast.show({
-        text: `✅ ${appName} downloaded successfully!`,
+        text: `✅ ${appName} downloaded!`,
         duration: 'long',
         position: 'bottom'
       });
 
-      // Step 5: Auto-install APK
+      // Step 5: Show Local Notification (persistent in tray)
+      const notificationId = Date.now();
+      await LocalNotifications.schedule({
+        notifications: [{
+          title: "📦 Download Complete",
+          body: `${appName} is ready to install!`,
+          id: notificationId,
+          schedule: { at: new Date(Date.now() + 500) },
+          sound: null,
+          attachments: null,
+          actionTypeId: "",
+          extra: { 
+            fileUri: savedFile.uri,
+            fileName: fileName,
+            appName: appName
+          }
+        }]
+      });
+
+      // Step 6: Add notification click listener for install
+      LocalNotifications.addListener('localNotificationActionPerformed', async (notification) => {
+        const fileUri = notification.notification.extra?.fileUri;
+        if (fileUri && fileName.endsWith('.apk')) {
+          try {
+            await AppLauncher.open({ uri: fileUri });
+          } catch (error) {
+            console.error('Install from notification error:', error);
+          }
+        }
+      });
+
+      // Step 7: Auto-install APK
       if (fileName.endsWith('.apk')) {
         setDownloadStatus('Opening installer...');
         setTimeout(async () => {
@@ -88,7 +135,7 @@ export const useDownload = () => {
           } catch (error) {
             console.error('Install error:', error);
             await Toast.show({
-              text: '📦 APK saved. Tap to install from Downloads.',
+              text: '📦 APK saved. Tap notification to install.',
               duration: 'long'
             });
           }
@@ -110,8 +157,18 @@ export const useDownload = () => {
       setDownloadStatus('Download failed');
       
       await Toast.show({
-        text: `❌ Download failed: ${error.message}`,
+        text: `❌ Download failed`,
         duration: 'long'
+      });
+      
+      // Show error notification
+      await LocalNotifications.schedule({
+        notifications: [{
+          title: "❌ Download Failed",
+          body: `${appName} could not be downloaded.`,
+          id: Date.now(),
+          schedule: { at: new Date(Date.now() + 500) }
+        }]
       });
       
       // Fallback to browser download
