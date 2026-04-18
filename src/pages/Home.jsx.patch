@@ -1,0 +1,10 @@
+--- a/src/pages/Home.jsx
++++ b/src/pages/Home.jsx
+@@ -150,7 +150,7 @@
+                     <div className="stat">
+                       <FiDownload />
+-                      <span>{app.stats?.downloads || 0}</span>
++                      <span>{app.stats?.downloads?.toLocaleString() || 0}</span>
+                     </div>
+                     <div className="stat">
+                       <FiHeart />

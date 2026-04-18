@@ -160,6 +160,25 @@ const Downloads = () => {
   const openFolder = async () => {
     const isNative = Capacitor.isNativePlatform();
     if (!isNative) return;
+    
+    try {
+      await Filesystem.readdir({
+        path: "MeganApps",
+        directory: Directory.External
+      });
+      await Toast.show({ 
+        text: "📁 Folder: /storage/emulated/0/MeganApps", 
+        duration: "long" 
+      });
+    } catch (error) {
+      await Toast.show({ 
+        text: "📁 Create folder by downloading an app", 
+        duration: "long" 
+      });
+    }
+  };
+    const isNative = Capacitor.isNativePlatform();
+    if (!isNative) return;
 
     try {
       // Try to open the folder using file URI
@@ -235,7 +254,26 @@ const Downloads = () => {
               <span className="storage-label">MeganApps Folder</span>
               <span className="storage-path">/storage/emulated/0/MeganApps</span>
             </div>
-            <button className="open-folder-btn" onClick={openFolder}>
+  const openFolder = async () => {
+    const isNative = Capacitor.isNativePlatform();
+    if (!isNative) return;
+    
+    try {
+      await Filesystem.readdir({
+        path: "MeganApps",
+        directory: Directory.External
+      });
+      await Toast.show({ 
+        text: "📁 Folder: /storage/emulated/0/MeganApps", 
+        duration: "long" 
+      });
+    } catch (error) {
+      await Toast.show({ 
+        text: "📁 Create folder by downloading an app", 
+        duration: "long" 
+      });
+    }
+  };
               <FiExternalLink /> Open
             </button>
           </div>
@@ -567,3 +605,29 @@ const Downloads = () => {
 };
 
 export default Downloads;
+
+// Add this function inside the Downloads component (before return)
+const openMeganAppsFolder = async () => {
+  const isNative = Capacitor.isNativePlatform();
+  if (!isNative) return;
+  
+  try {
+    // Try to open the folder using file URI
+    const result = await Filesystem.readdir({
+      path: 'MeganApps',
+      directory: Directory.External
+    });
+    
+    // On Android, we can't directly open folders, so show a helpful message
+    await Toast.show({ 
+      text: `📁 Open your file manager and go to /storage/emulated/0/MeganApps`, 
+      duration: 'long' 
+    });
+  } catch (error) {
+    // Folder doesn't exist yet
+    await Toast.show({ 
+      text: '📁 No downloads yet. Download an app first!', 
+      duration: 'long' 
+    });
+  }
+};

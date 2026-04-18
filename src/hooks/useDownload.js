@@ -14,6 +14,10 @@ export const useDownload = () => {
     
     if (!isNative) {
       window.open(url, '_blank');
+      // Track download for web too
+      if (meganId) {
+        fetch(`https://appapi.megan.qzz.io/api/download/${meganId}`).catch(() => {});
+      }
       return { success: true, method: 'web' };
     }
 
@@ -22,6 +26,20 @@ export const useDownload = () => {
     setDownloadStatus('Starting download...');
 
     try {
+      // Track download FIRST (before file operations)
+      if (meganId) {
+        console.log('📊 Tracking download for:', meganId);
+        try {
+          const trackResponse = await fetch(`https://appapi.megan.qzz.io/api/download/${meganId}`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+          });
+          console.log('✅ Download tracked:', trackResponse.status);
+        } catch (e) {
+          console.warn('⚠️ Download tracking failed:', e);
+        }
+      }
+
       // Create MeganApps folder at root of external storage
       const folderPath = 'MeganApps';
       try {
@@ -30,9 +48,8 @@ export const useDownload = () => {
           directory: Directory.External,
           recursive: true
         });
-        console.log('✅ MeganApps folder created at /storage/emulated/0/MeganApps');
+        console.log('✅ MeganApps folder ready at /storage/emulated/0/MeganApps');
       } catch (e) {
-        // Folder already exists
         console.log('📁 MeganApps folder already exists');
       }
 
@@ -66,7 +83,7 @@ export const useDownload = () => {
         reader.readAsDataURL(blob);
       });
 
-      // Save directly to MeganApps folder (not inside Downloads)
+      // Save directly to MeganApps folder
       const savedFile = await Filesystem.writeFile({
         path: `${folderPath}/${fileName}`,
         data: base64Data,
@@ -77,33 +94,33 @@ export const useDownload = () => {
       setDownloadProgress(100);
       setDownloadStatus('Complete!');
 
-      // Show success with file location
+      // Show success with file location and OPEN FOLDER option
       await Toast.show({
         text: `✅ Saved to MeganApps/${fileName}`,
         duration: 'long',
         position: 'bottom'
       });
 
-      // Track download count
-      if (meganId) {
-        try {
-          await fetch(`https://appapi.megan.qzz.io/api/download/${meganId}`);
-        } catch (e) {
-          console.log('Download tracking skipped');
-        }
-      }
-
-      // Auto-install APK
+      // Auto-install APK or open folder for other files
       if (fileName.endsWith('.apk')) {
         setTimeout(async () => {
           try {
             await AppLauncher.open({ uri: savedFile.uri });
           } catch (error) {
+            // If auto-install fails, offer to open folder
             await Toast.show({ 
-              text: '📱 Open MeganApps folder to install', 
+              text: '📁 Tap to open MeganApps folder', 
               duration: 'long' 
             });
           }
+        }, 500);
+      } else {
+        // For non-APK files, offer to open the folder
+        setTimeout(async () => {
+          await Toast.show({ 
+            text: '📂 File saved. Use file manager to open.', 
+            duration: 'long' 
+          });
         }, 500);
       }
 
