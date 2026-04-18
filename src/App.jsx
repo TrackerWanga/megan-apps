@@ -7,11 +7,11 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import Upload from './pages/Upload';
 import AppDetails from './pages/AppDetails';
+import Downloads from './pages/Downloads';
 import Terms from './pages/docs/Terms';
 import Privacy from './pages/docs/Privacy';
 import API from './pages/docs/API';
 import Settings from './pages/Settings';
-import Downloads from "/pages/Downloads";
 import NotFound from './pages/NotFound';
 import './index.css';
 
@@ -27,11 +27,11 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/upload" element={<Upload />} />
               <Route path="/app/:slug" element={<AppDetails />} />
+              <Route path="/downloads" element={<Downloads />} />
               <Route path="/docs/terms" element={<Terms />} />
               <Route path="/docs/privacy" element={<Privacy />} />
               <Route path="/docs/api" element={<API />} />
-              <Route path="/downloads" element={<Downloads />} />
-          <Route path="/settings" element={<Settings />} />
+              <Route path="/settings" element={<Settings />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>
