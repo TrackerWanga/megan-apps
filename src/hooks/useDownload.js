@@ -14,7 +14,6 @@ export const useDownload = () => {
     
     if (!isNative) {
       window.open(url, '_blank');
-      // Track download for web too
       if (meganId) {
         fetch(`https://appapi.megan.qzz.io/api/download/${meganId}`).catch(() => {});
       }
@@ -26,33 +25,21 @@ export const useDownload = () => {
     setDownloadStatus('Starting download...');
 
     try {
-      // Track download FIRST (before file operations)
+      // Track download FIRST
       if (meganId) {
         console.log('📊 Tracking download for:', meganId);
         try {
-          const trackResponse = await fetch(`https://appapi.megan.qzz.io/api/download/${meganId}`, {
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json' }
-          });
-          console.log('✅ Download tracked:', trackResponse.status);
+          await fetch(`https://appapi.megan.qzz.io/api/download/${meganId}`);
+          console.log('✅ Download tracked');
         } catch (e) {
           console.warn('⚠️ Download tracking failed:', e);
         }
       }
 
-      // Create MeganApps folder at root of external storage
+      // IMPORTANT: Use Directory.External for public storage!
+      // This saves to /storage/emulated/0/MeganApps/ (visible to user)
       const folderPath = 'MeganApps';
-      try {
-        await Filesystem.mkdir({
-          path: folderPath,
-          directory: Directory.External,
-          recursive: true
-        });
-        console.log('✅ MeganApps folder ready at /storage/emulated/0/MeganApps');
-      } catch (e) {
-        console.log('📁 MeganApps folder already exists');
-      }
-
+      
       const response = await fetch(url);
       const contentLength = response.headers.get('content-length');
       const total = parseInt(contentLength, 10);
@@ -75,7 +62,7 @@ export const useDownload = () => {
         }
       }
 
-      setDownloadStatus('Saving to MeganApps folder...');
+      setDownloadStatus('Saving to Downloads/MeganApps...');
       const blob = new Blob(chunks);
       const base64Data = await new Promise((resolve) => {
         const reader = new FileReader();
@@ -83,44 +70,37 @@ export const useDownload = () => {
         reader.readAsDataURL(blob);
       });
 
-      // Save directly to MeganApps folder
+      // Save to PUBLIC external storage
       const savedFile = await Filesystem.writeFile({
         path: `${folderPath}/${fileName}`,
         data: base64Data,
-        directory: Directory.External,
+        directory: Directory.External,  // This is key - External = public storage
         recursive: true
       });
+
+      console.log('✅ File saved to:', savedFile.uri);
 
       setDownloadProgress(100);
       setDownloadStatus('Complete!');
 
-      // Show success with file location and OPEN FOLDER option
       await Toast.show({
-        text: `✅ Saved to MeganApps/${fileName}`,
+        text: `✅ Saved to /storage/emulated/0/MeganApps/`,
         duration: 'long',
         position: 'bottom'
       });
 
-      // Auto-install APK or open folder for other files
+      // Auto-install APK
       if (fileName.endsWith('.apk')) {
         setTimeout(async () => {
           try {
             await AppLauncher.open({ uri: savedFile.uri });
           } catch (error) {
-            // If auto-install fails, offer to open folder
+            console.error('Install error:', error);
             await Toast.show({ 
-              text: '📁 Tap to open MeganApps folder', 
+              text: '📁 Find APK in MeganApps folder', 
               duration: 'long' 
             });
           }
-        }, 500);
-      } else {
-        // For non-APK files, offer to open the folder
-        setTimeout(async () => {
-          await Toast.show({ 
-            text: '📂 File saved. Use file manager to open.', 
-            duration: 'long' 
-          });
         }, 500);
       }
 
@@ -130,7 +110,18 @@ export const useDownload = () => {
     } catch (error) {
       console.error('Download error:', error);
       setIsDownloading(false);
-      await Toast.show({ text: `❌ Download failed`, duration: 'long' });
+      
+      // Check if it's a permissions issue
+      if (error.message?.includes('permission')) {
+        await Toast.show({ 
+          text: '❌ Storage permission needed', 
+          duration: 'long' 
+        });
+      } else {
+        await Toast.show({ text: `❌ Download failed`, duration: 'long' });
+      }
+      
+      // Fallback to browser
       window.open(url, '_blank');
       return { success: false };
     }
