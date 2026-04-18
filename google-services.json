@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "599593422056",
+    "firebase_url": "https://megan-corp-default-rtdb.firebaseio.com",
+    "project_id": "megan-corp",
+    "storage_bucket": "megan-corp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:599593422056:android:31253ecd7e9d232d5c8d5d",
+        "android_client_info": {
+          "package_name": "com.megan.apps"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "599593422056-f4lpouihf09j8r33ibd6b6n8u9oqo81f.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBcBQFERiAvM9TjAiAPnZz1UKR8a6B6FQE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "599593422056-f4lpouihf09j8r33ibd6b6n8u9oqo81f.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
