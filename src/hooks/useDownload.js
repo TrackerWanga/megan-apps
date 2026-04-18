@@ -22,6 +22,17 @@ export const useDownload = () => {
     setDownloadStatus('Starting download...');
 
     try {
+      // Ensure MeganApps folder exists
+      try {
+        await Filesystem.mkdir({
+          path: 'Download/MeganApps',
+          directory: Directory.External,
+          recursive: true
+        });
+      } catch (e) {
+        // Folder already exists, ignore
+      }
+
       const response = await fetch(url);
       const contentLength = response.headers.get('content-length');
       const total = parseInt(contentLength, 10);
@@ -44,7 +55,7 @@ export const useDownload = () => {
         }
       }
 
-      setDownloadStatus('Saving file...');
+      setDownloadStatus('Saving to Downloads/MeganApps...');
       const blob = new Blob(chunks);
       const base64Data = await new Promise((resolve) => {
         const reader = new FileReader();
@@ -62,18 +73,35 @@ export const useDownload = () => {
       setDownloadProgress(100);
       setDownloadStatus('Complete!');
 
+      // Show success with file location
       await Toast.show({
-        text: `✅ ${appName} saved to Downloads/MeganApps`,
+        text: `✅ Saved to Downloads/MeganApps/${fileName}`,
         duration: 'long',
         position: 'bottom'
       });
 
+      // Track download (optional - call API)
+      if (meganId) {
+        try {
+          await fetch(`https://appapi.megan.qzz.io/api/download/${meganId}`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+          });
+        } catch (e) {
+          console.log('Download tracking skipped');
+        }
+      }
+
+      // Auto-install APK
       if (fileName.endsWith('.apk')) {
         setTimeout(async () => {
           try {
             await AppLauncher.open({ uri: savedFile.uri });
           } catch (error) {
-            await Toast.show({ text: '📦 Check Downloads folder', duration: 'long' });
+            await Toast.show({ 
+              text: '📦 APK saved. Open Downloads/MeganApps to install', 
+              duration: 'long' 
+            });
           }
         }, 500);
       }
