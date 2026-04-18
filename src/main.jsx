@@ -8,9 +8,7 @@ import { refreshGoogleAuth } from './services/nativeAuth'
 if (Capacitor.isNativePlatform()) {
   import('@capacitor/app').then(({ App }) => {
     App.addListener('appStateChange', async ({ isActive }) => {
-      if (isActive) {
-        await refreshGoogleAuth();
-      }
+      if (isActive) await refreshGoogleAuth();
     });
   });
 }

@@ -23,11 +23,11 @@ jobs:
         node-version: '20'
         cache: 'npm'
 
-    - name: Setup Java 21
+    - name: Setup Java 17
       uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
-        java-version: '21'
+        java-version: '17'
 
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
@@ -45,15 +45,9 @@ jobs:
         npx cap init "Megan Apps" com.megan.apps --web-dir=dist
         npx cap add android
 
-    - name: Upgrade Gradle to 8.5
+    - name: Generate App Icons
       run: |
-        cd android
-        sed -i 's/gradle-.*-all.zip/gradle-8.5-all.zip/g' gradle/wrapper/gradle-wrapper.properties
-        cat gradle/wrapper/gradle-wrapper.properties
-
-    - name: Generate App Icons and Splash
-      run: |
-        npx capacitor-assets generate --android 2>/dev/null || echo "Icons already generated"
+        npx capacitor-assets generate --android 2>/dev/null || echo "Icons ready"
         npx cap sync android
 
     - name: Configure Capacitor

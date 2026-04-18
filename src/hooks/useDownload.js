@@ -60,10 +60,10 @@ export const useDownload = () => {
       });
 
       setDownloadProgress(100);
-      setDownloadStatus('Download complete!');
+      setDownloadStatus('Complete!');
 
       await Toast.show({
-        text: `✅ ${appName} downloaded to Downloads/MeganApps!`,
+        text: `✅ ${appName} saved to Downloads/MeganApps`,
         duration: 'long',
         position: 'bottom'
       });
@@ -73,25 +73,20 @@ export const useDownload = () => {
           try {
             await AppLauncher.open({ uri: savedFile.uri });
           } catch (error) {
-            await Toast.show({
-              text: '📦 APK saved. Check Downloads folder.',
-              duration: 'long'
-            });
+            await Toast.show({ text: '📦 Check Downloads folder', duration: 'long' });
           }
         }, 500);
       }
 
       setIsDownloading(false);
-      return { success: true, method: 'native', path: savedFile.uri };
+      return { success: true, path: savedFile.uri };
 
     } catch (error) {
       console.error('Download error:', error);
       setIsDownloading(false);
-      
       await Toast.show({ text: `❌ Download failed`, duration: 'long' });
       window.open(url, '_blank');
-      
-      return { success: false, error: error.message };
+      return { success: false };
     }
   };
 
